@@ -82,12 +82,13 @@ The **Developer Dashboard** is a sophisticated web application designed to help 
 - **Review Efficiency**: Review time and quality metrics
 
 ### 🎨 **Modern UI Design**
-- **Sapphire Blue & Eggshell** color palette
+- **Sapphire Blue & Eggshell** color palette (recently refined for optimal visibility)
 - Responsive Bootstrap 5.3 components
 - Professional loading overlays with progress indicators
 - Smooth animations and hover effects
 - Mobile-optimized tables and charts
 - Dark mode ready architecture
+- **Recent UI Improvements**: Fixed white text visibility issues, enhanced table styling, improved badge colors
 
 ### 📈 **Visual Analytics**
 - Interactive Chart.js visualizations
@@ -289,6 +290,8 @@ async def _get_recent_pull_requests_async(self, repo_name, count=20):
    - **Team Selection**: http://localhost:5002/github-metrics
    - **Team Comparison**: http://localhost:5002/team-comparison
    - **Documentation**: http://localhost:5002/documentation
+   
+   > **Note**: If port 5002 is in use, the application will automatically handle the conflict or you can manually kill existing processes using `lsof -ti:5002 | xargs kill -9`
 
 ---
 
@@ -318,6 +321,26 @@ developer-dashboard/
     ├── api.md                          # Backend API documentation
     └── images/                         # Screenshots and diagrams
 ```
+
+---
+
+## 🔄 Recent Improvements & Bug Fixes
+
+### ✅ **Latest Updates**
+- **Fixed Negative Merge Times**: Resolved dummy data generation to ensure positive commit-to-merge times
+- **Enhanced Color Visibility**: Fixed white text on white background issues across all dashboards
+- **Improved Table Styling**: Updated CSS variables for consistent sapphire blue and eggshell theming
+- **Badge Color Corrections**: Fixed ranking badges and metric indicators for better visibility
+- **Weekly PR Activity**: Restructured table layout for proper data display
+- **Port Conflict Resolution**: Automatic handling of port 5002 conflicts during startup
+- **Cross-Browser Compatibility**: Enhanced CSS for consistent appearance across browsers
+
+### 🎯 **UI/UX Enhancements**
+- **Repository Metrics Summary**: Improved badge colors and text contrast
+- **Top PR Contributors**: Fixed ranking visibility and header styling
+- **Team Comparison Dashboard**: Enhanced table headers and ranking displays
+- **Loading Overlays**: Consistent sapphire blue theme across all loading screens
+- **Mobile Responsiveness**: Better mobile table layouts and touch interactions
 
 ---
 
@@ -422,12 +445,13 @@ Leaderboard showing team members ranked by:
 ## 🎨 Design System
 
 ### 🎯 Color Palette
-- **Primary**: Sapphire Blue (#0D47A1, #1565C0)
-- **Background**: Eggshell (#FAFAFA, #F0F0F0)
-- **Text**: Muted Gray (#90A4AE)
-- **Success**: Blue Green (#1976D2)
+- **Primary**: Sapphire Blue (#0D47A1, #1565C0, #1976D2)
+- **Background**: Eggshell (#FAFAFA, #F0F0F0, #F5F5F5)
+- **Text**: Muted Gray (#90A4AE, #6c757d)
+- **Success**: Success Blue (#1976D2)
 - **Warning**: Amber (#FFC107)
 - **Error**: Deep Orange (#FF7043)
+- **Accent**: Eggshell variants for table striping and hover states
 
 ### 🧩 Components
 - **Cards**: 12px border radius, gradient backgrounds
@@ -494,6 +518,31 @@ python-dateutil==2.8.2
 - 🔍 **Advanced Filtering** - Complex search capabilities
 - 📱 **Mobile App** - Native mobile experience
 - ⚡ **Further Performance Optimizations** - GraphQL API, Redis caching
+
+## 🛠️ Troubleshooting
+
+### Common Issues & Solutions
+
+**Port 5002 Already in Use:**
+```bash
+# Kill processes using port 5002
+lsof -ti:5002 | xargs kill -9
+# Then restart the application
+python app.py
+```
+
+**White Text Visibility Issues:**
+- The dashboard has been updated with improved contrast ratios
+- Hard refresh your browser (Ctrl+F5 or Cmd+Shift+R) to clear CSS cache
+
+**Cache Issues:**
+- Use the cache management API: `GET /api/cache-stats`
+- Clear specific team cache: `POST /api/clear-cache/<team_name>`
+
+**Demo Mode Setup:**
+- Ensure `DEMO_MODE = True` in configuration
+- No GitHub token required for demo mode
+- All features work with realistic dummy data
 
 ---
 
