@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Comparison Dashboard - Developer Dashboard</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Sapphire Blue & Eggshell Color Palette */
+        :root {
+            --sapphire-blue: #0D47A1;
+            --sapphire-secondary: #1565C0;
+            --sapphire-light: #1976D2;
+            --sapphire-accent: #2196F3;
+            --eggshell: #FAFAFA;
+            --eggshell-secondary: #F5F5F5;
+            --eggshell-light: #F0F0F0;
+            --eggshell-accent: #EEEEEE;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-muted: #90A4AE;
+            --text-disabled: #BDBDBD;
+            --success-blue: #1976D2;
+            --warning-amber: #FFC107;
+            --error-orange: #FF7043;
+            --info-gray: #90A4AE;
+            --card-bg: #FFFFFF;
+            --border-color: #E0E0E0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        /* Card Styling with Modern Gradient */
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(13, 71, 161, 0.15);
+        }
+
+        /* Main Content Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        .table th {
+            background-color: var(--sapphire-blue) !important;
+            color: white !important;
+            border-top: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+        .table td {
+            padding: 0.75rem 1rem;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) > td {
+            background-color: var(--eggshell-secondary);
+        }
+        .table-striped > tbody > tr:nth-of-type(even) > td {
+            background-color: var(--eggshell-light);
+        }
+        .table-hover tbody tr:hover {
+            background-color: var(--eggshell-accent) !important;
+        }
+
+        /* Section Headings */
+        .section-heading {
+            color: var(--sapphire-blue);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .last-updated {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .refresh-button {
+            position: relative;
+            background-color: var(--sapphire-blue);
+            border-color: var(--sapphire-blue);
+            transition: all 0.3s ease;
+        }
+        .refresh-button:hover {
+            background-color: var(--sapphire-secondary);
+            border-color: var(--sapphire-secondary);
+            transform: translateY(-2px);
+        }
+        .refresh-button.loading {
+            pointer-events: none;
+        }
+        .refresh-button.loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        .team-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            margin: 0.125rem;
+            background-color: var(--eggshell-light);
+            border: 1px solid var(--sapphire-blue);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--sapphire-blue);
+        }
+
+        .metric-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--sapphire-blue);
+        }
+        .metric-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        /* Ranking Tables */
+        .ranking-table .table-success {
+            background-color: #E8F5E8 !important;
+        }
+        .ranking-table .table-warning {
+            background-color: #FFF8E1 !important;
+        }
+        .ranking-table .table-danger {
+            background-color: #FFEBEE !important;
+        }
+
+        .error-alert {
+            border-radius: 12px;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            .section-heading {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>
+                Developer Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/github">GitHub Metrics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/team-comparison">Team Comparison</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/engintanrikulu/developer-dashboard/blob/main/README.md" target="_blank">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Documentation
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <!-- Header -->
+    <div class="container-fluid bg-light py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h2 mb-2">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        Team Comparison Dashboard
+                    </h1>
+                    <p class="text-muted mb-0">Compare key metrics across all development teams</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <button class="btn btn-primary refresh-button" onclick="refreshAllTeamsData()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Refresh All Teams Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        {% if error %}
+        <div class="alert alert-danger error-alert" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+        
+        <!-- Loading Overlay for Team Comparison -->
+        <div id="teams-loading-overlay" class="text-center" style="display: none;">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 class="mt-2 mb-1">Refreshing All Teams Data</h5>
+                            <p class="text-muted mb-0">Processing multiple teams in parallel for optimal performance</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="fas fa-rocket text-primary me-2"></i>
+                                        Parallel Processing
+                                    </h6>
+                                    <small class="text-muted">Fetching data for all teams simultaneously</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="fas fa-database text-success me-2"></i>
+                                        Cache Refresh
+                                    </h6>
+                                    <small class="text-muted">Clearing cache for fresh data</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="fas fa-chart-line text-warning me-2"></i>
+                                        Metrics Calculation
+                                    </h6>
+                                    <small class="text-muted">Recalculating all team metrics</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="fas fa-users text-info me-2"></i>
+                                        Global Analytics
+                                    </h6>
+                                    <small class="text-muted">Updating global user statistics</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                        <div class="metric-value">{{ teams_data.total_teams }}</div>
+                        <div class="metric-label">Total Teams</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-code-branch fa-2x text-success mb-2"></i>
+                        <div class="metric-value">{{ teams_data.teams | sum(attribute='total_merged_prs') }}</div>
+                        <div class="metric-label">Total Merged PRs</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-rocket fa-2x text-info mb-2"></i>
+                        <div class="metric-value">{{ "%.1f" | format(teams_data.teams | sum(attribute='pr_throughput')) }}</div>
+                        <div class="metric-label">Combined Throughput</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                        <div class="metric-value">
+                            {% set avg_times = teams_data.teams | selectattr('avg_merge_time', 'greaterthan', 0) | list %}
+                            {% if avg_times %}
+                                {{ "%.1f" | format((avg_times | sum(attribute='avg_merge_time')) / (avg_times | length)) }}h
+                            {% else %}
+                                0h
+                            {% endif %}
+                        </div>
+                        <div class="metric-label">Avg Merge Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Comparison Table -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header" style="background-color: var(--sapphire-blue); color: white;">
+                        <h5 class="card-title mb-0 section-heading" style="color: white; margin-bottom: 0;">
+                            📊 Team Metrics Comparison
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Team</th>
+                                        <th>PR Throughput</th>
+                                        <th>Avg Merge Time</th>
+                                        <th>Avg PR Size</th>
+                                        <th>Total PRs</th>
+                                        <th>Repositories</th>
+                                        <th>Last Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for team in teams_data.teams %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ team.team_name }}</strong>
+                                            {% if team.error %}
+                                            <span class="badge bg-danger ms-2">Error</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="metric-value">{{ "%.1f" | format(team.pr_throughput) }}</span>
+                                            <small class="text-muted">/day</small>
+                                        </td>
+                                        <td>
+                                            {% if team.avg_merge_time > 0 %}
+                                                <span class="metric-value">{{ "%.1f" | format(team.avg_merge_time) }}</span>
+                                                <small class="text-muted">hours</small>
+                                            {% else %}
+                                                <span class="text-muted">No data</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if team.avg_pr_size > 0 %}
+                                                <span class="metric-value">{{ team.avg_pr_size | int }}</span>
+                                                <small class="text-muted">lines</small>
+                                            {% else %}
+                                                <span class="text-muted">No data</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="metric-value">{{ team.total_merged_prs }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ team.repositories_count }}</span>
+                                            <div class="mt-1">
+                                                {% for repo in team.repositories %}
+                                                <span class="team-badge">{{ repo }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+                                        <td class="last-updated">
+                                            {% if team.last_updated %}
+                                                {{ team.last_updated[:19] | replace('T', ' ') }}
+                                            {% else %}
+                                                <span class="text-muted">Never</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking Tables -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header" style="background-color: var(--sapphire-blue); color: white;">
+                        <h5 class="card-title mb-0 section-heading" style="color: white; margin-bottom: 0;">
+                            🏆 Teams by PR Throughput
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped ranking-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Team</th>
+                                        <th>PRs/day</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for team in teams_data.teams | sort(attribute='pr_throughput', reverse=true) %}
+                                    <tr class="{% if loop.index == 1 %}table-success{% elif loop.index == 2 %}table-warning{% elif loop.index == 3 %}table-danger{% endif %}">
+                                        <td>
+                                            {% if loop.index <= 3 %}
+                                                <i class="fas fa-medal text-{% if loop.index == 1 %}warning{% elif loop.index == 2 %}secondary{% else %}danger{% endif %}"></i>
+                                            {% endif %}
+                                            {{ loop.index }}
+                                        </td>
+                                        <td>{{ team.team_name }}</td>
+                                        <td><strong>{{ "%.1f" | format(team.pr_throughput) }}</strong></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header" style="background-color: var(--sapphire-blue); color: white;">
+                        <h5 class="card-title mb-0 section-heading" style="color: white; margin-bottom: 0;">
+                            ⏱️ Teams by Avg Merge Time
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped ranking-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Team</th>
+                                        <th>Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for team in teams_data.teams | selectattr('avg_merge_time', 'greaterthan', 0) | sort(attribute='avg_merge_time') %}
+                                    <tr class="{% if loop.index == 1 %}table-success{% elif loop.index == 2 %}table-warning{% elif loop.index == 3 %}table-danger{% endif %}">
+                                        <td>
+                                            {% if loop.index <= 3 %}
+                                                <i class="fas fa-medal text-{% if loop.index == 1 %}warning{% elif loop.index == 2 %}secondary{% else %}danger{% endif %}"></i>
+                                            {% endif %}
+                                            {{ loop.index }}
+                                        </td>
+                                        <td>{{ team.team_name }}</td>
+                                        <td><strong>{{ "%.1f" | format(team.avg_merge_time) }}</strong></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header" style="background-color: var(--sapphire-blue); color: white;">
+                        <h5 class="card-title mb-0 section-heading" style="color: white; margin-bottom: 0;">
+                            📈 Team Metrics Visualization
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <h6>PR Throughput Comparison</h6>
+                                <div class="chart-container">
+                                    <canvas id="throughputChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <h6>Average Merge Time Comparison</h6>
+                                <div class="chart-container">
+                                    <canvas id="mergeTimeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <h6>Average PR Size Comparison</h6>
+                                <div class="chart-container">
+                                    <canvas id="prSizeChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <h6>Total Merged PRs Comparison</h6>
+                                <div class="chart-container">
+                                    <canvas id="totalPRsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global User Performance Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card" style="background-color: #FAFAFA;">
+                    <div class="card-header" style="background-color: var(--sapphire-blue); color: white;">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-friends me-2"></i>
+                            Global User Performance Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Warning message for empty data -->
+                        {% if global_user_data.total_contributors == 0 %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>⚠️ Global User Performance Metrics data is empty.</strong>
+                            <br>
+                            <small>Please check backend aggregation and cache reading logic. Debug info: {{ global_user_data.total_contributors }} contributors, {{ global_user_data.total_months }} months tracked.</small>
+                        </div>
+                        {% endif %}
+
+                        <!-- Top 5 Global Contributors -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-trophy me-2"></i>
+                                    Top 5 Global Contributors
+                                </h6>
+                                {% if global_user_data.top_5_global %}
+                                <div class="row">
+                                    {% for contributor in global_user_data.top_5_global %}
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                                                <div class="card h-100" style="border: 1px solid var(--sapphire-blue);">
+                            <div class="card-body text-center p-3">
+                                <div class="mb-2">
+                                    {% if loop.index == 1 %}
+                                        <i class="fas fa-medal text-warning fa-2x"></i>
+                                    {% elif loop.index == 2 %}
+                                        <i class="fas fa-medal text-secondary fa-2x"></i>
+                                    {% elif loop.index == 3 %}
+                                        <i class="fas fa-medal text-danger fa-2x"></i>
+                                    {% else %}
+                                        <i class="fas fa-user-circle text-primary fa-2x"></i>
+                                    {% endif %}
+                                </div>
+                                <h6 class="card-title" style="font-size: 0.9rem;">{{ contributor.username }}</h6>
+                                <div class="metric-value text-primary">{{ contributor.total_prs }}</div>
+                                <div class="metric-label">PRs</div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">{{ contributor.avg_pr_size | int }} lines avg</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No global contributors data available.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Monthly User Performance Chart -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-chart-area me-2"></i>
+                                    Monthly Contributor Activity
+                                </h6>
+                                <div class="chart-container">
+                                    <canvas id="monthlyUserChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Breakdown Cards -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    Monthly User Performance Breakdown
+                                </h6>
+                                
+                                {% for month in global_user_data.monthly_stats %}
+                                <!-- Month Card -->
+                                <div class="card mb-3" style="border: 2px solid var(--sapphire-blue); border-radius: 8px;">
+                                    <div class="card-header" style="background: linear-gradient(135deg, var(--sapphire-blue) 0%, var(--sapphire-secondary) 100%); color: white; border-radius: 6px 6px 0 0;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <button class="btn btn-link text-white text-decoration-none p-0 border-0 w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index }}" aria-expanded="{% if loop.index == 1 %}true{% else %}false{% endif %}" aria-controls="collapse-{{ loop.index }}">
+                                                <div class="d-flex justify-content-between align-items-center w-100">
+                                                    <h5 class="mb-0">
+                                                        <i class="fas fa-calendar-month me-2"></i>
+                                                        {{ month.month_label }}
+                                                        <i class="fas fa-chevron-down ms-2" style="font-size: 0.8rem;"></i>
+                                                    </h5>
+                                                    <span class="badge" style="background-color: rgba(255,255,255,0.2); color: white; font-size: 0.9rem;">
+                                                        {{ month.total_prs_month }} total PRs
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="collapse {% if loop.index == 1 %}show{% endif %}" id="collapse-{{ loop.index }}">
+                                        <div class="card-body" style="background-color: #FAFAFA;">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover table-striped mb-0">
+                                                                            <thead style="background-color: var(--sapphire-blue); color: white;">
+                            <tr>
+                                <th style="border-color: var(--sapphire-secondary);">Rank</th>
+                                <th style="border-color: var(--sapphire-secondary);">User</th>
+                                <th style="border-color: var(--sapphire-secondary);">Total PRs</th>
+                                <th style="border-color: var(--sapphire-secondary);">Avg PR Size</th>
+                                <th style="border-color: var(--sapphire-secondary);">Total Lines</th>
+                            </tr>
+                        </thead>
+                                                    <tbody>
+                                                        {% for user in month.users %}
+                                                        <tr>
+                                                            <td>
+                                                                {% if loop.index == 1 %}
+                                                                    <span class="badge text-dark" style="background-color: #FFD700; border: 1px solid #FFA500; font-size: 0.9rem; font-weight: bold;">#{{ loop.index }}</span>
+                                                                {% elif loop.index == 2 %}
+                                                                    <span class="badge text-dark" style="background-color: #C0C0C0; border: 1px solid #999; font-size: 0.9rem; font-weight: bold;">#{{ loop.index }}</span>
+                                                                {% elif loop.index == 3 %}
+                                                                    <span class="badge text-dark" style="background-color: #CD7F32; border: 1px solid #B8860B; font-size: 0.9rem; font-weight: bold;">#{{ loop.index }}</span>
+                                                                {% else %}
+                                                                    <span class="badge text-white" style="background-color: var(--sapphire-blue); border: 1px solid var(--sapphire-blue); font-size: 0.9rem; font-weight: bold;">#{{ loop.index }}</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <strong>{{ user.username }}</strong>
+                                                                    {% if loop.index <= 3 %}
+                                                                        {% if loop.index == 1 %}
+                                                                            <i class="fas fa-medal text-warning ms-2" title="1st Place"></i>
+                                                                        {% elif loop.index == 2 %}
+                                                                            <i class="fas fa-medal text-secondary ms-2" title="2nd Place"></i>
+                                                                        {% elif loop.index == 3 %}
+                                                                            <i class="fas fa-medal text-danger ms-2" title="3rd Place"></i>
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="metric-value" style="color: var(--sapphire-blue); font-weight: bold;">{{ user.total_prs }}</span>
+                                                            </td>
+                                                            <td>
+                                                                {% if user.avg_pr_size > 0 %}
+                                                                    <span class="metric-value" style="color: var(--sapphire-blue); font-weight: bold;">{{ user.avg_pr_size | int }}</span>
+                                                                    <small class="text-muted">lines</small>
+                                                                {% else %}
+                                                                    <span class="text-muted">-</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                <span class="metric-value" style="color: var(--sapphire-blue); font-weight: bold;">{{ user.total_lines_changed }}</span>
+                                                                <small class="text-muted">lines</small>
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Global User Summary -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card" style="background-color: var(--eggshell-light); border: 1px solid var(--sapphire-blue);">
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-md-3">
+                                                <div class="metric-value text-primary">{{ global_user_data.total_contributors }}</div>
+                                                <div class="metric-label">Total Contributors</div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-value text-primary">{{ global_user_data.total_months }}</div>
+                                                <div class="metric-label">Months Tracked</div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-value text-primary">{{ global_user_data.global_users | sum(attribute='total_prs') }}</div>
+                                                <div class="metric-label">Total PRs</div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-value text-primary">{{ global_user_data.global_users | sum(attribute='total_lines_changed') }}</div>
+                                                <div class="metric-label">Total Lines Changed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Updated Info -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-info-circle me-2 text-info"></i>
+                                    Data Information
+                                </h6>
+                                <p class="text-muted mb-0">
+                                    Data is cached for performance. Use "Refresh All Teams Data" to get the latest metrics.
+                                    {% if teams_data.last_updated %}
+                                    Last updated: {{ teams_data.last_updated[:19] | replace('T', ' ') }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-database me-1"></i>
+                                    Based on last 20 PRs per team
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 Developer Dashboard. Built with <i class="fas fa-heart text-danger"></i> for development teams.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Chart data from backend
+        const chartData = {{ chart_data_json | safe }};
+        const globalUserChartData = {{ global_user_chart_data_json | safe }};
+        
+        // Chart configuration
+        const chartConfig = {
+            type: 'bar',
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        };
+
+        // Initialize charts
+        function initializeCharts() {
+            if (!chartData || !chartData.labels) {
+                console.warn('No chart data available');
+                return;
+            }
+
+            // PR Throughput Chart
+            const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+            new Chart(throughputCtx, {
+                ...chartConfig,
+                data: {
+                    labels: chartData.labels,
+                    datasets: [chartData.datasets.pr_throughput]
+                }
+            });
+
+            // Average Merge Time Chart
+            const mergeTimeCtx = document.getElementById('mergeTimeChart').getContext('2d');
+            new Chart(mergeTimeCtx, {
+                ...chartConfig,
+                data: {
+                    labels: chartData.labels,
+                    datasets: [chartData.datasets.avg_merge_time]
+                }
+            });
+
+            // Average PR Size Chart
+            const prSizeCtx = document.getElementById('prSizeChart').getContext('2d');
+            new Chart(prSizeCtx, {
+                ...chartConfig,
+                data: {
+                    labels: chartData.labels,
+                    datasets: [chartData.datasets.avg_pr_size]
+                }
+            });
+
+            // Total Merged PRs Chart
+            const totalPRsCtx = document.getElementById('totalPRsChart').getContext('2d');
+            new Chart(totalPRsCtx, {
+                ...chartConfig,
+                data: {
+                    labels: chartData.labels,
+                    datasets: [chartData.datasets.total_merged_prs]
+                }
+            });
+
+            // Monthly User Performance Chart
+            if (globalUserChartData && globalUserChartData.labels) {
+                const monthlyUserCtx = document.getElementById('monthlyUserChart').getContext('2d');
+                new Chart(monthlyUserCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: globalUserChartData.labels,
+                        datasets: globalUserChartData.datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Refresh all teams data
+        function refreshAllTeamsData() {
+            const button = document.querySelector('.refresh-button');
+            button.classList.add('loading');
+            document.getElementById('teams-loading-overlay').style.display = 'block';
+            
+            fetch('/api/refresh-all-teams', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showAlert('success', 'Cache cleared successfully! Refreshing page...');
+                    
+                    // Reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert('danger', 'Error: ' + data.error);
+                    button.classList.remove('loading');
+                    document.getElementById('teams-loading-overlay').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                showAlert('danger', 'Network error: ' + error.message);
+                button.classList.remove('loading');
+                document.getElementById('teams-loading-overlay').style.display = 'none';
+            });
+        }
+
+        // Show alert message
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+        });
+    </script>
+</body>
+</html> 

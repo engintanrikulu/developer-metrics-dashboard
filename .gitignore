@@ -1,0 +1,15 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.env/
+
+# Cache directory
+data/cache/
+
+# OS files
+.DS_Store
+Thumbs.db

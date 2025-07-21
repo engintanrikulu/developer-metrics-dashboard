@@ -1,0 +1,49 @@
+{
+  "github_token": "YOUR_GITHUB_TOKEN",
+  "organization": "sample-org",
+  "$github_token_name": "github_metrics_token",
+  "teams": [
+    {
+      "name": "Frontend Team",
+      "repositories": [
+        "frontend-app",
+        "admin-panel",
+        "user-dashboard",
+        "mobile-web"
+      ]
+    },
+    {
+      "name": "Backend Team",
+      "repositories": [
+        "api-service",
+        "auth-service",
+        "user-service",
+        "notification-service"
+      ]
+    },
+    {
+      "name": "DevOps Team",
+      "repositories": [
+        "infrastructure",
+        "deployment-scripts",
+        "monitoring-tools"
+      ]
+    },
+    {
+      "name": "Data Team",
+      "repositories": [
+        "data-pipeline",
+        "analytics-service",
+        "ml-models"
+      ]
+    },
+    {
+      "name": "Mobile Team",
+      "repositories": [
+        "ios-app",
+        "android-app",
+        "react-native-shared"
+      ]
+    }
+  ]
+}

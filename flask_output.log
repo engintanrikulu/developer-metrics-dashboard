@@ -1,0 +1,24 @@
+INFO:github_service:GitHub Service initialized:
+INFO:github_service:🎭 DEMO MODE ACTIVE - Using dummy data
+INFO:github_service:  Organization: sample-org (demo)
+INFO:github_service:  Token: YOUR_GITHUB_TOKEN (demo)
+INFO:github_service:  Cache initialized with 12-hour TTL
+INFO:github_service:  Headers: {'Authorization': 'token YOUR_GITHUB_TOKEN', 'Accept': 'application/vnd.github.v3+json'}
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+INFO:github_service:GitHub Service initialized:
+INFO:github_service:🎭 DEMO MODE ACTIVE - Using dummy data
+INFO:github_service:  Organization: sample-org (demo)
+INFO:github_service:  Token: YOUR_GITHUB_TOKEN (demo)
+INFO:github_service:  Cache initialized with 12-hour TTL
+INFO:github_service:  Headers: {'Authorization': 'token YOUR_GITHUB_TOKEN', 'Accept': 'application/vnd.github.v3+json'}
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 143-282-582
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
