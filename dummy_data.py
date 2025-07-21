@@ -95,8 +95,12 @@ def get_dummy_pr_commits(pr_number, pr_created_at=None, pr_merged_at=None):
     # If PR dates are provided, ensure commit is between creation and merge
     if pr_created_at and pr_merged_at:
         try:
-            created_dt = datetime.fromisoformat(pr_created_at.replace('Z', '+00:00'))
-            merged_dt = datetime.fromisoformat(pr_merged_at.replace('Z', '+00:00'))
+            # Clean datetime strings to avoid timezone issues
+            clean_created = pr_created_at.replace('Z', '+00:00') if pr_created_at.endswith('Z') else pr_created_at
+            clean_merged = pr_merged_at.replace('Z', '+00:00') if pr_merged_at.endswith('Z') else pr_merged_at
+            
+            created_dt = datetime.fromisoformat(clean_created)
+            merged_dt = datetime.fromisoformat(clean_merged)
             
             # Generate commit date between creation and merge (closer to creation)
             # Make sure we have at least 1 hour between commit and merge for realistic timing
@@ -126,7 +130,7 @@ def get_dummy_pr_commits(pr_number, pr_created_at=None, pr_merged_at=None):
                 "author": {
                     "name": contributor["name"],
                     "email": f"{contributor['login']}@company.com",
-                    "date": commit_date.isoformat() + "Z"
+                    "date": commit_date.replace(tzinfo=None).isoformat() + "Z"
                 },
                 "message": f"Initial commit for PR #{pr_number}"
             }

@@ -79,6 +79,19 @@ class MemoryCache:
         """Get current cache size"""
         return len(self.cache)
 
+def safe_parse_datetime(date_string: str) -> datetime:
+    """Safely parse datetime strings handling various timezone formats"""
+    if not date_string:
+        raise ValueError("Empty date string")
+    
+    # Remove any duplicate timezone suffixes
+    if '+00:00' in date_string and date_string.count('+00:00') > 1:
+        date_string = date_string.split('+00:00')[0] + '+00:00'
+    elif date_string.endswith('Z'):
+        date_string = date_string[:-1] + '+00:00'
+    
+    return datetime.fromisoformat(date_string)
+
 class GitHubService:
     def __init__(self):
         self.config = self.load_config()
@@ -1085,8 +1098,8 @@ class GitHubService:
                 if not reviews:
                     continue
                 
-                created_at = datetime.fromisoformat(pr['created_at'].replace('Z', '+00:00'))
-                first_review_at = datetime.fromisoformat(reviews[0]['submitted_at'].replace('Z', '+00:00'))
+                created_at = safe_parse_datetime(pr['created_at'])
+                first_review_at = safe_parse_datetime(reviews[0]['submitted_at'])
                 
                 mr_time_hours = (first_review_at - created_at).total_seconds() / 3600
                 mr_times.append(mr_time_hours)
@@ -1141,8 +1154,8 @@ class GitHubService:
                 
                 # Add review-specific data if reviews exist
                 if reviews:
-                    created_at = datetime.fromisoformat(pr['created_at'].replace('Z', '+00:00'))
-                    first_review_at = datetime.fromisoformat(reviews[0]['submitted_at'].replace('Z', '+00:00'))
+                    created_at = safe_parse_datetime(pr['created_at'])
+                    first_review_at = safe_parse_datetime(reviews[0]['submitted_at'])
                     
                     mr_time_hours = (first_review_at - created_at).total_seconds() / 3600
                     mr_times.append(mr_time_hours)
@@ -1190,7 +1203,7 @@ class GitHubService:
         
         for pr in prs:
             try:
-                created_date = datetime.fromisoformat(pr['created_at'].replace('Z', '+00:00'))
+                created_date = safe_parse_datetime(pr['created_at'])
                 # Get the start of the week (Monday)
                 week_start = created_date - timedelta(days=created_date.weekday())
                 week_key = week_start.strftime('%Y-%m-%d')
@@ -1240,7 +1253,7 @@ class GitHubService:
         dates = []
         for pr in prs:
             try:
-                created_date = datetime.fromisoformat(pr['created_at'].replace('Z', '+00:00'))
+                created_date = safe_parse_datetime(pr['created_at'])
                 dates.append(created_date)
             except Exception as e:
                 logger.warning(f"Error parsing date {pr.get('created_at', 'unknown')}: {e}")
@@ -1505,8 +1518,8 @@ class GitHubService:
                 if not commits:
                     continue
                 
-                first_commit_date = datetime.fromisoformat(commits[0]['commit']['author']['date'].replace('Z', '+00:00'))
-                merged_at = datetime.fromisoformat(pr['merged_at'].replace('Z', '+00:00'))
+                first_commit_date = safe_parse_datetime(commits[0]['commit']['author']['date'])
+                merged_at = safe_parse_datetime(pr['merged_at'])
                 
                 commit_to_merge_hours = (merged_at - first_commit_date).total_seconds() / 3600
                 commit_to_merge_times.append(commit_to_merge_hours)
@@ -1763,7 +1776,7 @@ class GitHubService:
                             if not created_at_str:
                                 continue
                                 
-                            created_date = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                            created_date = safe_parse_datetime(created_at_str)
                             month_key = created_date.strftime('%Y-%m')
                             month_label = created_date.strftime('%b %Y')
                         except Exception as e:

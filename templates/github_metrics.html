@@ -895,20 +895,30 @@
                 </div>
             </div>
 
-            <!-- Cache Status -->
+            <!-- Cache Status (Collapsible) -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="card-title mb-0">
+                        <div class="card-header d-flex justify-content-between align-items-center" 
+                             style="cursor: pointer;" 
+                             data-bs-toggle="collapse" 
+                             data-bs-target="#cacheStatusCollapse" 
+                             aria-expanded="false" 
+                             aria-controls="cacheStatusCollapse">
+                            <div class="d-flex align-items-center">
                                 <i class="fas fa-database me-2"></i>
-                                Cache Status
-                            </h6>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="clearCache()">
-                                <i class="fas fa-trash me-1"></i>Clear {{ team_name }} Cache
-                            </button>
+                                <h6 class="card-title mb-0">Cache Status</h6>
+                                <small class="text-muted ms-2">(Click to expand)</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearCache(); event.stopPropagation();">
+                                    <i class="fas fa-trash me-1"></i>Clear {{ team_name }} Cache
+                                </button>
+                                <i class="fas fa-chevron-down collapse-icon" style="transition: transform 0.3s ease;"></i>
+                            </div>
                         </div>
-                        <div class="card-body">
+                        <div id="cacheStatusCollapse" class="collapse">
+                            <div class="card-body">
                             <div class="row">
                                 <div class="col-md-3">
                                     <small class="text-muted">Total Items:</small>
@@ -953,6 +963,7 @@
                                 <div class="col-md-9">
                                     <small class="text-muted">Cache helps reduce API calls by 97% with 12-hour TTL</small>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -1842,7 +1853,23 @@
         }
 
         // Load cache stats on page load
-        document.addEventListener('DOMContentLoaded', loadCacheStats);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCacheStats();
+            
+            // Add collapse event listeners for cache status
+            const cacheStatusCollapse = document.getElementById('cacheStatusCollapse');
+            const collapseIcon = document.querySelector('.collapse-icon');
+            
+            if (cacheStatusCollapse && collapseIcon) {
+                cacheStatusCollapse.addEventListener('show.bs.collapse', function () {
+                    collapseIcon.style.transform = 'rotate(180deg)';
+                });
+                
+                cacheStatusCollapse.addEventListener('hide.bs.collapse', function () {
+                    collapseIcon.style.transform = 'rotate(0deg)';
+                });
+            }
+        });
 
         // Date filter functionality
         let startDatePicker, endDatePicker;
